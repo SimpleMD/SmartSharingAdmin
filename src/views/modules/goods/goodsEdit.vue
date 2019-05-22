@@ -80,11 +80,49 @@
                 </el-date-picker>
             </el-form-item> 
             <el-form-item label="商品类型" :label-width="formLabelWidth"  prop="goodType">
-                <el-radio v-model="AddData.goodType" label="1">自营商品</el-radio>
-                <el-radio v-model="AddData.goodType" label="2">入驻商品</el-radio>
-                <el-radio v-model="AddData.goodType" label="3">优惠券商品</el-radio>
+                <el-radio v-model="AddData.goodType" label="1">普通商品</el-radio>
+                <el-radio v-model="AddData.goodType" label="2">预约商品</el-radio>
+                <el-radio v-model="AddData.goodType" label="4">秒杀商品</el-radio>
                 <!-- <el-alert style="padding:0px" title="注：根级也就是设置初始等级" type="success"></el-alert> -->
             </el-form-item>
+            <el-form-item label="预约周期"  :label-width="formLabelWidth" prop="dateTimes"  v-if="AddData.goodType == 2">
+                <el-date-picker
+                type="dates"
+                value-format="yyyy-MM-dd"
+                v-model="dateTimes"
+                @change = 'selectChang'
+                placeholder="选择一个或多个日期">
+                </el-date-picker>
+            </el-form-item>
+
+            <el-form-item label="预约时间" :label-width="formLabelWidth" prop="bookDetail" v-if="AddData.goodType == 2">
+            <div class="bookTime FlexWarp" v-for="(itemTime,index) in bookDetail" :key="index" >
+                <el-tag type="info" style="margin:0 12px;">时间段：</el-tag>
+                <el-time-select
+                    placeholder="起始时间"
+                    v-model="itemTime.startTime"
+                    :picker-options="{
+                    start: '00:00',
+                    step: '00:15',
+                    end: '23:59'
+                    }">
+                </el-time-select>
+                <el-time-select
+                    placeholder="结束时间"
+                    v-model="itemTime.endTime"
+                    :picker-options="{
+                    start: '00:00',
+                    step: '00:15',
+                    end: '23:59',
+                    minTime: itemTime.startTime
+                    }">
+                </el-time-select>
+                <el-tag type="info"  style="margin:0 12px;">优惠券张数：</el-tag> <div class="bookList_input"> <el-input v-model="itemTime.bookNum" placeholder="请输入优惠券张数"></el-input></div>
+                </div>
+                <el-button type="primary" round @click="bookTimeClick">添加</el-button>
+            </el-form-item>
+
+
             <el-form-item label="商品详情" :label-width="formLabelWidth"  prop="content">
                   <!-- <Editor :Value="AddData.content" ref="Editor" @Set_Content="Get_ContentValue"/> -->
                 <Editors v-model="AddData.content" ref="Editor"/>
@@ -187,10 +225,14 @@ export default {
                hot:'2',
                goodType:'3',
                fixedCommission:'', //分享佣金
+               dateTimes:[],
                subway:'',
+               bookDetail:'',
                subwayList:[{value:'',options:[]}], //关于地铁的数据
            },
+           dateTimes:'',
            formLabelWidth:'120px',
+           bookDetail:[{startTime:'',endTime:'',bookNum:0},{startTime:'',endTime:'',bookNum:0}],
            AddDatarules:{
              sn:[ { required: true, message: '请输入编号', trigger: 'blur' }, ],
              goodName:[ { required: true, message: '请输入商品名称', trigger: 'blur' },],
@@ -257,6 +299,8 @@ export default {
       this.AddData.shopId = parseInt(this.AddData.shopId);
       this.AddData.invalidTime = new Date(this.AddData.invalidTime).getTime();
       this.AddData.imagesList = this.AddData.images.split(',');
+      this.AddData.dateTimes = Array.of(this.AddData.dateTimes);
+    //   cons
     //   this.AddData.subway = this
       this.$set(this.AddData,'catName1','');
       this.$set(this.AddData,'subwayList',[{value:'',options:[]}]);
@@ -452,6 +496,20 @@ export default {
         generateSn(){
             this.AddData.sn = random_No(3)
         },
+
+        //预约时间段赋值
+        selectChang(e){
+           this.AddData.dateTimes = JSON.stringify(e);
+        //    console.log(JSON.stringify(e))
+        },
+
+        //添加预约时间条数
+        bookTimeClick(){
+            let that = this;
+            let data = {startTime:'',endTime:'',bookNum:0}
+            that.AddData.bookDetail.push(data);
+        },
+
 
         //赋值分类
         changeCatName(val){

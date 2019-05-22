@@ -43,9 +43,6 @@
                 <el-radio v-model="AddData.status" label="1">立即上架</el-radio>
                 <el-radio v-model="AddData.status" label="2">暂不上架</el-radio>
             </el-form-item>
-            <!-- <el-form-item label="分类ID" :label-width="formLabelWidth"  prop="catId">
-                <el-input v-model="AddData.catId" placeholder="请输入分类ID" autocomplete="off"></el-input>
-            </el-form-item> -->
             <el-form-item label="分类名称" :label-width="formLabelWidth"  prop="catName">
                 <el-select v-model="AddData.catName1" clearable placeholder="请选择" @change = 'changeCatName'>
                     <el-option v-for="item in goodsCatRoot" :key="item.value" :label="item.name" :value="item.catId"></el-option>
@@ -81,10 +78,53 @@
                 </el-date-picker>
             </el-form-item> 
             <el-form-item label="商品类型" :label-width="formLabelWidth"  prop="goodType">
-                <el-radio v-model="AddData.goodType" label="1">自营商品</el-radio>
-                <el-radio v-model="AddData.goodType" label="2">入驻商品</el-radio>
-                <el-radio v-model="AddData.goodType" label="3">优惠券商品</el-radio>
+                <el-radio v-model="AddData.goodType" label="1">普通商品</el-radio>
+                <el-radio v-model="AddData.goodType" label="2">预约商品</el-radio>
+                <!-- <el-radio v-model="AddData.goodType" label="3">积分商品</el-radio> -->
+                <el-radio v-model="AddData.goodType" label="4">秒杀商品</el-radio>
                 <!-- <el-alert style="padding:0px" title="注：根级也就是设置初始等级" type="success"></el-alert> -->
+            </el-form-item>
+            
+            <el-form-item label="预约周期"  :label-width="formLabelWidth" prop="dateTimes"  v-if="AddData.goodType == 2">
+                <el-date-picker
+                type="dates"
+                value-format="yyyy-MM-dd"
+                v-model="dateTimes"
+                @change = 'selectChang'
+                placeholder="选择一个或多个日期">
+                </el-date-picker>
+            </el-form-item>
+
+            <el-form-item label="预约时间" :label-width="formLabelWidth" prop="bookDetail" v-if="AddData.goodType == 2">
+            <div class="bookTime FlexWarp" v-for="(itemTime,index) in bookDetail" :key="index" >
+                <el-tag type="info" style="margin:0 12px;">时间段：</el-tag>
+                <el-time-select
+                    placeholder="起始时间"
+                    v-model="itemTime.startTime"
+                    :picker-options="{
+                    start: '00:00',
+                    step: '00:15',
+                    end: '23:59'
+                    }">
+                </el-time-select>
+                <el-time-select
+                    placeholder="结束时间"
+                    v-model="itemTime.endTime"
+                    :picker-options="{
+                    start: '00:00',
+                    step: '00:15',
+                    end: '23:59',
+                    minTime: itemTime.startTime
+                    }">
+                </el-time-select>
+                <el-tag type="info"  style="margin:0 12px;">优惠券张数：</el-tag> <div class="bookList_input"> <el-input v-model="itemTime.bookNum" placeholder="请输入优惠券张数"></el-input></div>
+                </div>
+                <el-button type="primary" round @click="bookTimeClick">添加</el-button>
+            </el-form-item>
+
+
+            <el-form-item label="秒杀时间" :label-width="formLabelWidth"  prop="seckillStart" v-if="AddData.goodType == 4">
+                <el-date-picker v-model="msTime" type="datetimerange" value-format='yyyy-MM-dd HH-mm-ss' range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" @change='msTimeSelect'></el-date-picker>
             </el-form-item>
             <el-form-item label="商品详情" :label-width="formLabelWidth"  prop="content">
                 <!-- <Editor :Value="AddData.content" ref="Editor" @Set_Content="Get_ContentValue"/> -->
@@ -189,11 +229,17 @@ export default {
                redPacket:'2',
                status:'2',
                hot:'2',
-               goodType:'3',
+               goodType:'1',
                fixedCommission:'', //分享佣金
                subway:'',
+               dateTimes:[],
                subwayList:[{value:'',options:[]}], //关于地铁的数据
+               seckillStart:'',
+               seckillEnd:'',
+               bookDetail:'',
            },
+           dateTimes:'',
+           bookDetail:[{startTime:'',endTime:'',bookNum:0},{startTime:'',endTime:'',bookNum:0}],
            formLabelWidth:'120px',
            AddDatarules:{
              sn:[
@@ -267,6 +313,9 @@ export default {
              ],
              inventory:[
                 { required: true, message: '请设置库存信息', trigger: 'blur' },
+             ],
+             dateTimes:[
+                { required: true, message: '请设置预约时间段', trigger: 'blur' },
              ]
            },
            goodsCat:[],
@@ -278,6 +327,7 @@ export default {
                 {value: '1',label: '马登的小店'},
                 {value: '2',label: '马登的小店'}
            ],
+           msTime:'',
            ImgType:0, //设置图片类型
            proportion:1, //设置图片比例
            imageIndex:'',//轮播时指定的下标
@@ -310,11 +360,12 @@ export default {
         addData(){
             let that = this;
             that.UpAddData(); //对添加数据进行处理
-            console.log(that.AddData,"添加时候的数据")
+            // console.log(that.AddData,"添加时候的数据")
             // that.$refs.Editor.getContent(); //商品详情
+            that.AddData.bookDetail = JSON.stringify(that.bookDetail);
             this.$refs['AddruleForm'].validate((valid) => {
             if (valid) {
-                API.AddGoods(that.AddData).then(res => {
+                API.AddGoods(this.AddData).then(res => {
                     if(res.code == 0){
                         that.$message({ message: '添加成功', type: 'success'});
                         that.AddData = {}
@@ -335,21 +386,12 @@ export default {
             this.$router.push('/goods-goodsList')
         },
         
-        // Conten字段赋值
-        // Get_ContentValue(data){
-        //   this.AddData.content = data
-        // },
+        
 
         //获取商品分类
         GetGoodsCatData(){
             let that = this;
             let arr = [];
-            // if(Store.state.good.goodsCat.length > 0){
-            //     that.goodsCat = Store.state.good.goodsCat
-            //     that.goodsCatRoot = that.goodsCat.filter(f => f.root == 1)
-            // }else{
-        
-            // }
             let data = { page: 1,limit: 20}
                 API.GetGoodsCat(data).then(res => {
                     if(res != undefined){
@@ -366,7 +408,7 @@ export default {
         GetShopDataList(){
             let that = this; 
             if(Store.state.good.ShopDataList.length > 0){
-                that.ShopDataList = Store.state.good.ShopDataList
+                that.ShopDataList = Object.assign({},Store.state.good.ShopDataList);
             }else{
                 API.GetShopList({ page: 1,limit: 30}).then(res => {
                         if(res != undefined){
@@ -381,10 +423,13 @@ export default {
             }
         },
 
+
+
         //获得所有分享师列表
         GetShareDataList(){
             let that = this;
             if(Store.state.good.MemberDataList.length > 0){
+                // JSON.parse(JSON.stringify()) 
                 that.MemberDataList = Store.state.good.MemberDataList;
             }else{
                 APIMember.getdistributorLvList({ page: 1,limit: 20}).then(res => {
@@ -393,7 +438,7 @@ export default {
                             Mres.value = 0;
                             return Mres;
                         });
-                        that.Set_MemberLvList(that.MemberDataList)
+                        that.Set_MemberLvList(JSON.parse(JSON.stringify(that.MemberDataList)));
                     }else{
                         that.$message.error('分享师等级列表并未请求到');
                     }
@@ -468,6 +513,25 @@ export default {
             }
         },
 
+        //预约时间段赋值
+        selectChang(e){
+           this.AddData.dateTimes = JSON.stringify(e);
+        //    console.log(JSON.stringify(e))
+        },
+
+        //添加预约时间条数
+        bookTimeClick(){
+            let that = this;
+            let data = {startTime:'',endTime:'',bookNum:0}
+            that.AddData.bookDetail.push(data);
+        },
+
+        //秒杀时间赋值
+        msTimeSelect(e){
+            this.AddData.seckillStart = e[0];
+            this.AddData.seckillEnd = e[1];          
+        },
+
         //显示图片上传框 type:上传图片的类型 proportion:上传图片的比例 IMAGE_iNDEX:轮播图时修改指定图片的下标
         UpLoadShow(type,proportion,IMAGE_iNDEX){
             this.ImgType = type;
@@ -534,5 +598,5 @@ export default {
     display: flex;
     align-items: center;
 }
-
+.bookTime{}
 </style>
