@@ -35,9 +35,19 @@
             <el-form-item label="排序" :label-width="formLabelWidth"  prop="sort">
                 <el-input type="number"  v-model="AddData.sort" placeholder="请输入排序" autocomplete="off"></el-input>
             </el-form-item>                                          
-            <el-form-item label="是否热销" :label-width="formLabelWidth"  prop="hot">
+            <el-form-item label="是否首页推荐" :label-width="formLabelWidth"  prop="hot">
                 <el-radio v-model="AddData.hot" label="1">是</el-radio>
                 <el-radio v-model="AddData.hot" label="2">否</el-radio>
+            </el-form-item>  
+
+            <el-form-item label="首页推荐商品" :label-width="formLabelWidth"  prop="indexImage">
+                <div class="avatar-uploader imagesBoxList homeImg" @click="UpLoadShow(4,1.777)">
+                    <img v-if="AddData.indexImage" :src="AddData.indexImage" class="avatar">
+                    <i v-else class="el-icon-plus avatar-uploader-icon"></i></div>
+            </el-form-item>  
+            <el-form-item label="是否超赞推荐" :label-width="formLabelWidth"  prop="offer">
+                <el-radio v-model="AddData.offer" label="1">是</el-radio>
+                <el-radio v-model="AddData.offer" label="2">否</el-radio>
             </el-form-item>  
             <el-form-item label="商品状态" :label-width="formLabelWidth" prop="status">
                 <el-radio v-model="AddData.status" label="1">立即上架</el-radio>
@@ -54,10 +64,14 @@
                     <el-option v-for="item in goodCatChiler" :key="item.value" :label="item.name" :value="item.catId"></el-option>
                 </el-select>
             </el-form-item>      
+  
             <el-form-item label="区域" :label-width="formLabelWidth"  prop="region">
-                <el-input v-model="AddData.region" placeholder="请输入内容" autocomplete="off"></el-input>
+                <el-select v-model="AddData.region" clearable placeholder="请选择" @change = 'changeCatName'>
+                    <el-option v-for="item in RegionData" :key="item.id" :label="item.name" :value="item.id"></el-option>
+                </el-select>
+                <!-- <el-input v-model="AddData.region" placeholder="请输入内容" autocomplete="off"></el-input> -->
             </el-form-item> 
-            <el-form-item label="地铁" :label-width="formLabelWidth"  prop="subway" style="display:none">
+            <!-- <el-form-item label="地铁" :label-width="formLabelWidth"  prop="subway" style="display:none">
                 <div class="FlexWarp">
                 <div v-for="(item,index) in AddData.subwayList" :key="index" :index='index' style="margin-right:4px;">
                     <el-select v-model="item.value" placeholder="请选择"  @change='subwayChangeSelect' >
@@ -65,16 +79,16 @@
                     </el-select>
                 </div>
                 </div>
-            </el-form-item> 
+            </el-form-item>  -->
             <!-- <el-form-item label="付款类型" :label-width="formLabelWidth"  prop="payType">
                 <el-radio v-model="AddData.payType" label="1">微信支付</el-radio>
                 <el-radio v-model="AddData.payType" label="2">余额支付</el-radio>> 
             </el-form-item> -->
-            <el-form-item label="积分抵扣金额" :label-width="formLabelWidth"  prop="pointAmount">
+            <!-- <el-form-item label="积分抵扣金额" :label-width="formLabelWidth"  prop="pointAmount">
                 <el-input  type="number"  v-model="AddData.pointAmount" placeholder="请输入内容" autocomplete="off">
                     <template slot="append">元</template>
                 </el-input>
-            </el-form-item> 
+            </el-form-item>  -->
             <el-form-item label="商品失效时间" :label-width="formLabelWidth"  prop="invalidTime">
                 <el-date-picker v-model="AddData.invalidTime"    type="date" value-format="timestamp" format="yyyy 年 MM 月 dd 日" placeholder="选择日期">
                 </el-date-picker>
@@ -122,7 +136,9 @@
                 <el-button type="primary" round @click="bookTimeClick">添加</el-button>
             </el-form-item>
 
-
+          <el-form-item label="秒杀时间" :label-width="formLabelWidth"  prop="seckillStart" v-if="AddData.goodType == 4">
+                <el-date-picker v-model="msTime" type="datetimerange" value-format='yyyy-MM-dd HH:mm:ss' range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" @change='msTimeSelect'></el-date-picker>
+            </el-form-item>
             <el-form-item label="商品详情" :label-width="formLabelWidth"  prop="content">
                   <!-- <Editor :Value="AddData.content" ref="Editor" @Set_Content="Get_ContentValue"/> -->
                 <Editors v-model="AddData.content" ref="Editor"/>
@@ -153,15 +169,28 @@
             <el-form-item label="库存" :label-width="formLabelWidth"  prop="inventory">
                 <el-input type="number"  v-model="AddData.inventory" placeholder="请输入内容" autocomplete="off"></el-input>
             </el-form-item>
+
+            <el-form-item label="标签" :label-width="formLabelWidth"  prop="tags">
+                <!-- <el-checkbox-group  v-model="tagValue" @change='changeValue'>
+                    <el-checkbox v-for="item in tagsList" :label="item.id" :key="item.id">{{item.labelName}}</el-checkbox>
+                </el-checkbox-group> -->
+                <span v-for="item in tagsList">
+                    <el-tag   v-show="item.bool">{{item.labelName}}</el-tag>
+                </span>
+                 
+                  <el-select v-model="tagValue" placeholder="请选择" @change="changSelect">
+                      <el-option v-for="item in tagsList" :key="item.id" :label="item.labelName" :value="item.id">
+                 </el-option></el-select>
+            </el-form-item>
             <el-form-item label="商店ID" :label-width="formLabelWidth"  prop="shopId">
                 <el-select v-model="AddData.shopId" placeholder="请选择">
                    <el-option v-for="item in ShopDataList" :key="item.value" :label="item.shopName" :value="item.shopId"></el-option>
                 </el-select>
             </el-form-item>
-            <el-form-item label="是否可以使用红包" :label-width="formLabelWidth"  prop="redPacket">
+            <!-- <el-form-item label="是否可以使用红包" :label-width="formLabelWidth"  prop="redPacket">
                 <el-radio v-model="AddData.redPacket" label="1">是</el-radio>
                 <el-radio v-model="AddData.redPacket" label="2">否</el-radio>
-            </el-form-item>
+            </el-form-item> -->
             <el-form-item label="分享获得佣金" :label-width="formLabelWidth"  prop="fixedCommission">
                 <div class="YongMoney" v-for="(item,index) in MemberDataList" :index ='index' :key="item.distributorLvId">
                     <el-tag style="margin-right:12px;">{{item.name}}</el-tag>
@@ -200,10 +229,13 @@
 import API from "@/api/goods";
 import APIMember from "@/api/member";
 import APISys from "@/api/sys";
+import APIReg from "@/api/region"
+import APILab from '@/api/label'
 import Editors from "@/components/Editor/Editor";
 import Uploadimg from "@/components/UpLoadImg/UpLoadImg";
 import Store from "@/store/index"
 import { random_No } from "@/utils/index"
+import Lib from "@/utils/lib"
 import { mapActions } from 'vuex';
 
 export default {
@@ -223,13 +255,18 @@ export default {
                redPacket:'2',
                status:'2',
                hot:'2',
+               offer:'2',
                goodType:'3',
                fixedCommission:'', //分享佣金
                dateTimes:[],
                subway:'',
                bookDetail:'',
+               indexImage:'',
                subwayList:[{value:'',options:[]}], //关于地铁的数据
+               tags:''
            },
+           tagValue:'',
+           tagsList:[],
            dateTimes:'',
            formLabelWidth:'120px',
            bookDetail:[{startTime:'',endTime:'',bookNum:0},{startTime:'',endTime:'',bookNum:0}],
@@ -257,16 +294,19 @@ export default {
              invalidTime:[ { required: true, message: '请设置失效时间', trigger: 'blur' },],
              goodType:[{ required: true, message: '请设置商品类型', trigger: 'blur' },],
             //  subway:[{ required: true, message: '请设置地铁信息', trigger: 'blur' },],
-             inventory:[{ required: true, message: '请设置库存信息', trigger: 'blur' },]
+             inventory:[{ required: true, message: '请设置库存信息', trigger: 'blur' },],
+             offer:[{ required: true, message: '请设置超赞推荐', trigger: 'blur' },],
+             indexImage:[{ required: true, message: '请设置首页推荐图片', trigger: 'blur' },]
            },
            goodsCat:[],
            goodsCatRoot:[],
            goodCatChiler:[],
            MemberDataList:[],
            DictionaryDataList:[],
+           RegionData:[],
            ShopDataList:[
-                {value: '1',label: '马登的小店'},
-                {value: '2',label: '马登的小店'}
+                {value: '1',label: '小店'},
+                {value: '2',label: '小店'}
            ],
            ImgType:0, //设置图片类型
            proportion:1, //设置图片比例
@@ -289,24 +329,37 @@ export default {
       await this.GetGoodsCatData(); //获取所有的分类
       await this.GetShareDataList(); //获取所有的等级
       await this.GetShopDataList(); //获取所有店铺
+      await this.GetRegionData(); //获取区域数据
       this.AddData = Object.assign({},this.$route.query);
-      console.log("查看一下穿过来的数据",this.$route.query)
+      console.log(JSON.parse(this.AddData.dateTimes),"查看一下穿过来的数据",this.$route.query)
       this.UpEditData();
       this.AddData.payType = this.AddData.payType + '';
       this.AddData.hot = this.AddData.hot + '';
       this.AddData.status = this.AddData.status + '';
       this.AddData.goodType = this.AddData.goodType + '';
+      this.AddData.region = parseInt(this.AddData.region);
       this.AddData.shopId = parseInt(this.AddData.shopId);
       this.AddData.invalidTime = new Date(this.AddData.invalidTime).getTime();
       this.AddData.imagesList = this.AddData.images.split(',');
-      this.AddData.dateTimes = Array.of(this.AddData.dateTimes);
-    //   cons
-    //   this.AddData.subway = this
+      this.AddData.tags = this.AddData.tags;
+
+      if(this.AddData.goodType == 2){
+        let TIME = JSON.parse(this.AddData.dateTimes).map(M => {
+            M = Lib.dade_Time(M);
+            return M;
+        });
+        this.dateTimes = TIME;
+        this.bookDetail = JSON.parse(this.AddData.bookDetail);
+        this.$set(this.AddData,'dateTimes',JSON.parse(this.AddData.dateTimes));
+      }
+
       this.$set(this.AddData,'catName1','');
       this.$set(this.AddData,'subwayList',[{value:'',options:[]}]);
-    //   this.$refs.Editor.setContent(this.AddData.content);  //content赋值
+
       await this.GetDictionaryData(); //获取字典数据
       this.goodsCatOptionValue();
+      this.GetLabelData(); //获取私有标签
+
     },
     methods: {
         ...mapActions('good',['Get_GoodsCatData','Set_MemberLvList','Set_ShopList','Set_DictionaryList']),
@@ -392,7 +445,6 @@ export default {
                         Mres.value = 0;
                         return Mres;
                     });
-                    // that.Set_MemberLvList(Object.assign({},that.MemberDataList))
                 }else{
                     that.$message.error('分享师等级列表并未请求到');
                 }
@@ -417,13 +469,27 @@ export default {
             }
         },
 
+        //获取区域
+        GetRegionData(){
+            let that = this;
+            APIReg.Getregion({page: 1,limit: 20}).then(res => {
+               console.log(res,"as等你啊苏丹阿is")  
+               if(res != undefined){
+                   that.RegionData = res.rows;
+               }else{
+                that.$message.error('区域列表并未请求到');                    
+               }
+            }).catch(err => {
+                that.$message.error('区域列表并未请求到');               
+            })
+        },
+
         //获取地铁的数据
         GetDictionaryData(){
             let that = this;
             if(Store.state.good.DictionaryDataList.length > 0){
                 that.DictionaryDataList = Object.assign([],Store.state.good.DictionaryDataList);
                 that.AddData.subwayList[0].options = that.DictionaryDataList
-                console.log("打印一下拿到的数据",that.AddData.subwayList[0].options )
             }else{
                 APISys.GetSubwayData().then(res =>{
                     if(res != undefined){
@@ -457,15 +523,57 @@ export default {
             })
         },
 
+        //获取所有的标签
+        GetLabelData(){
+            let that = this;
+            
+            APILab.GetLabel({page: 1,limit: 20}).then(res => {
+               if(res != undefined){
+                  let Item = that.AddData.tags.split(',');
+                  that.tagsList = res.rows.map(M => {
+                      Item.includes(M.id+'') ? M.bool = true : M.bool = false;
+                      return M
+                  });
+
+               }else{
+                that.$message.error('标签并未请求到');                     
+               }
+            }).catch(err => {
+               that.$message.error('标签并未请求到');                 
+            })
+        },
+
+        //标签赋值
+        changSelect(e){
+            let that = this;
+            let str = '';
+            this.tagsList.map(M => {
+                if(M.id == e){
+                   M.bool = true;
+                }
+                if( M.bool ){
+                  str = (str ? str + ',' : str) + M.id + ''
+                }
+            })
+            // this.tagsList.fllter(F => F.bool == true).map()
+            this.AddData.tags = str;
+        },
+        
+        //秒杀时间赋值
+        msTimeSelect(e){
+            this.AddData.seckillStart = e[0];
+            this.AddData.seckillEnd = e[1];          
+        },
+
         //编辑时数据处理
         UpEditData(){
             let that = this;
             // let ItemOptions = Object.assign([],that.MemberDataList);
-            console.log("数据1：",this.AddData.fixedCommission,"数据2：",that.MemberDataList,"数据3：")
             this.AddData.fixedCommission.split(',').map(Mres => {
                 that.MemberDataList.find(Fres => Fres.distributorLvId == Mres.split('|')[0]).value =  Mres.split('|')[1]
             })
         },
+
 
         //对数据进行处理的时间
         UpAddData(){
@@ -474,7 +582,6 @@ export default {
             that.MemberDataList.map(Mres => {
                 MenberLv.push(Mres.distributorLvId+'|'+Mres.value);
             })
-            console.log("查看一下解析的数据",that.MemberDataList)
             that.AddData.fixedCommission = MenberLv.join(',')
         },
 
@@ -482,7 +589,6 @@ export default {
         goodsCatOptionValue(){
             let that = this;
             let CatValue = that.goodsCat.find(f => f.catId == this.AddData.catId);
-            console.log(that.goodsCat,"分类过来的数据：",CatValue,this.AddData)
             if(CatValue.root == 1){
                that.AddData.catName1 = parseInt(CatValue.catId);
                console.log("that.AddData.catName1:",that.AddData.catName1,that.goodsCatRoot)
@@ -501,6 +607,7 @@ export default {
         selectChang(e){
            this.AddData.dateTimes = JSON.stringify(e);
         //    console.log(JSON.stringify(e))
+
         },
 
         //添加预约时间条数
@@ -544,6 +651,9 @@ export default {
                     that.AddData.posterImg = ImgUrl;
                     break;                                
                 default:
+                case 4:
+                    that.AddData.indexImage = ImgUrl;
+                    break;                                
                     break;
             }
         }

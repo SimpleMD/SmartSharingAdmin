@@ -19,7 +19,7 @@
     "babel-polyfill": "6.26.0",
     "cropper": "^4.0.0",
     "echarts": "^4.2.1",
-    "element-ui": "2.3.2",
+    "element-ui": "2.8.2",
     "gulp": "3.9.1",
     "gulp-concat": "2.6.1",
     "gulp-load-plugins": "1.5.0",

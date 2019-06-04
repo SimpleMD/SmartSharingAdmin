@@ -18,6 +18,11 @@ export default {
     //编辑积分商品
     EditPointGood:params => {
         return API.PUT('/good/integralGood/update',params)   
+    },
+
+    //转入积分商品
+    SavaPointGood:params => {
+        return API.POST('/good/good/integral',params)
     }
    
 }

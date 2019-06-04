@@ -6,9 +6,19 @@
             <el-table-column type="selection" width="55"></el-table-column>
             <el-table-column align="center" prop="id"  label="区域ID"></el-table-column>
             <el-table-column align="center" prop="name"  label="区域名称"></el-table-column>
-            <el-table-column align="center" prop="value"  label="数据值"></el-table-column>
+            <el-table-column align="center" prop="value"  label="图片">
+              <template slot-scope="scope">
+                <img :src="scope.row.value" :alt="scope.row.name" width="60"/>
+              </template>
+            </el-table-column>
             <el-table-column align="center" prop="type"  label="类型"></el-table-column>
-            <el-table-column align="center" prop="description"  label="描述"></el-table-column>
+            <el-table-column align="center" prop="sort"  label="排序"></el-table-column> 
+            <el-table-column align="center" prop="remarks"  label="超赞图片">
+              <template slot-scope="scope">
+                <img :src="scope.row.remarks" :alt="scope.row.name" width="60"/>
+              </template>               
+            </el-table-column>              
+            <!-- <el-table-column align="center" prop="description"  label="描述"></el-table-column> -->
             <el-table-column  align="center" label="操作" width="220" class-name="small-padding fixed-width">
              <template slot-scope="scope">
                 <!-- <el-button type="success"  size="mini" icon="el-icon-plus" @click="handYi(scope.$index,scope.row)"></el-button> -->
@@ -87,9 +97,10 @@ export default {
         API.Getregion(that.listQuery).then((res) => {
           if(res != undefined){
             that.regionData = res.rows;
+            console.log(that.regionData,"打印")
             that.total = res.total;
           }
-          console.log(that.LabelData,"你好世界")
+                      console.log("查看一下数据",that.regionData)
         }).catch((err) => {
            this.$message.error('抱歉网络错误');
         });
@@ -98,5 +109,6 @@ export default {
 }
 </script>
 <style scoped>
+
 
 </style>

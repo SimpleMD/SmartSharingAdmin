@@ -6,6 +6,7 @@
       </el-form-item>
     </el-form>
     <el-table
+      :row-key="getRowKey"
       :data="dataList"
       border
       style="width: 100%;">
@@ -109,6 +110,9 @@
       this.getDataList()
     },
     methods: {
+      getRowKey (row) {
+       return row.menuId
+      },
       // 获取数据列表
       getDataList () {
         this.dataListLoading = true

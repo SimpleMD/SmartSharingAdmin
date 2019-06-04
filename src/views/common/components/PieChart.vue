@@ -7,8 +7,6 @@ import echarts from 'echarts'
 require('echarts/theme/macarons') // echarts theme
 import { debounce } from '@/utils'
 
-const animationDuration = 6000
-
 export default {
   props: {
     className: {
@@ -23,23 +21,14 @@ export default {
       type: String,
       default: '300px'
     },
-    barChartName:{
+  
+    countList:{
       type:Array,
       default:[]
     },
-    barCharCount:{
+    countinfoList:{
       type:Array,
       default:[]
-    }
-  },
-  watch:{
-    barChartName(val){
-       this.barChartName = val
-       this.initChart()
-    },
-    barCharCount(val){
-       this.barCharCount = val
-       this.initChart()
     }
   },
   data() {
@@ -47,12 +36,21 @@ export default {
       chart: null
     }
   },
+  watch:{
+    countinfoList(val){
+       console.log("进来过吗",val)
+       this.countinfoList = val
+       this.initChart()
+    }
+  },
   mounted() {
     this.initChart()
+
     this.__resizeHandler = debounce(() => {
       if (this.chart) {
         this.chart.resize()
       }
+
     }, 100)
     window.addEventListener('resize', this.__resizeHandler)
   },
@@ -64,49 +62,40 @@ export default {
     this.chart.dispose()
     this.chart = null
   },
+
   methods: {
+    // this.$emit('update:chstatus',newValue)
     initChart() {
       let that = this;
       this.chart = echarts.init(this.$el, 'macarons')
 
       this.chart.setOption({
         tooltip: {
-          trigger: 'axis',
-          axisPointer: { // 坐标轴指示器，坐标轴触发有效
-            type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
-          }
+          trigger: 'item',
+          formatter: '{a} <br/>{b} : {c} ({d}%)'
         },
-        grid: {
-          top: 10,
-          left: '2%',
-          right: '2%',
-          bottom: '3%',
-          containLabel: true
+        legend: {
+          left: 'center',
+          bottom: '10',
+          data: that.countList
         },
-        xAxis: [{
-          type: 'category',
-          data: that.barChartName,
-          axisTick: {
-            alignWithLabel: true
+        calculable: true,
+        series: [
+          {
+            name: 'WEEKLY WRITE ARTICLES',
+            type: 'pie',
+            roseType: 'radius',
+            radius: [15, 95],
+            center: ['50%', '38%'],
+            data: that.countinfoList,
+
+            animationEasing: 'cubicInOut',
+            animationDuration: 2600
           }
-        }],
-        yAxis: [{
-          type: 'value',
-          axisTick: {
-            show: false
-          }
-        }],
-        series: [{
-          name: '数据',
-          type: 'bar',
-          stack: 'vistors',
-          barWidth: '60%',
-          data: that.barCharCount,
-          animationDuration
-         }
         ]
       })
-    }
+    },
+    
   }
 }
 </script>

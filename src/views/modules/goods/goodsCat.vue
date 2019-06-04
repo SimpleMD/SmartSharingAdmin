@@ -102,8 +102,7 @@ import Pagination from '@/components/Pagination'
 
         this.tagarr = Array.from(new Set(this.tagarr)).map((res,index) => {
           return {name : `第${index+1}级`,root : res}
-          // res.name = `第${index}级`
-          // res.root = res
+
         })
 
       },

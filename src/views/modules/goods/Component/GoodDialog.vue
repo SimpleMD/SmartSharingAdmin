@@ -20,7 +20,7 @@
    </div>    
 </template>
 <script>
-import API from "@/api/goods";
+import API from "@/api/point";
 export default {
     data (){
         return {
@@ -46,7 +46,7 @@ export default {
         //转入一分钱抢
         addData(){
             let that = this;
-            API.addPointGood(that.AddData).then(res => {
+            API.SavaPointGood(that.AddData).then(res => {
                 if(res.code == 0){
                     that.AddShow = false;
                     that.AddData = {};

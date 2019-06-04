@@ -1,42 +1,156 @@
 <template>
-  <div>
-     <el-date-picker size='mini' value-format='timestamp' @change='changTime' v-model="dataTime" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期"></el-date-picker>
-     <div id="J_chartLineBox" class="chart-box"></div>
-  </div>
+  <div :class="className" :style="{height:height,width:width}"/>
 </template>
+
 <script>
+import echarts from 'echarts'
+require('echarts/theme/macarons') // echarts theme
+import { debounce } from '@/utils'
+
 export default {
-  props: ['chartLine'],
+  props: {
+    className: {
+      type: String,
+      default: 'chart'
+    },
+    width: {
+      type: String,
+      default: '100%'
+    },
+    height: {
+      type: String,
+      default: '350px'
+    },
+    autoResize: {
+      type: Boolean,
+      default: true
+    },
+    chartData: {
+      type: Object,
+      required: true
+    }
+  },
   data() {
     return {
-      dataTime:''
+      chart: null
+    }
+  },
+  watch: {
+    chartData: {
+      deep: true,
+      handler(val) {
+        this.setOptions(val)
+      }
     }
   },
   mounted() {
-    this.initChartLine()
-  },
-  activated () {
-    // 由于给echart添加了resize事件, 在组件激活时需要重新resize绘画一次, 否则出现空白bug
-    if (this.chartLine) {
-        this.chartLine.resize()
+    this.initChart()
+    if (this.autoResize) {
+      this.__resizeHandler = debounce(() => {
+        if (this.chart) {
+          this.chart.resize()
+        }
+      }, 100)
+      // window.addEventListener('resize', this.__resizeHandler)
     }
-    },
-  methods: {
-    //根据时间筛选数据
-    changTime(e){
-     let that = this;
-     console.log("数据",e,that.dataTime)
-     that.GetdateTimeData(that.dataTime[0],that.dataTime[1])
-    },
 
-    //获取时间周期数据
-    async GetdateTimeData(beginTime,endTime){
-      let that = this;
-      let data = {
-        beginTime:beginTime,
-        endTime:endTime
+    // 监听侧边栏的变化
+    const sidebarElm = document.getElementsByClassName('sidebar-container')[0]
+    // sidebarElm.addEventListener('transitionend', this.sidebarResizeHandler)
+  },
+  beforeDestroy() {
+    if (!this.chart) {
+      return
+    }
+    if (this.autoResize) {
+      // window.removeEventListener('resize', this.__resizeHandler)
+    }
+
+    const sidebarElm = document.getElementsByClassName('sidebar-container')[0]
+    // sidebarElm.removeEventListener('transitionend', this.sidebarResizeHandler)
+
+    this.chart.dispose()
+    this.chart = null
+  },
+  methods: {
+    sidebarResizeHandler(e) {
+      if (e.propertyName === 'width') {
+        this.__resizeHandler()
       }
     },
+    setOptions({ expectedData, actualData,weekDate } = {}) {
+      this.chart.setOption({
+        xAxis: {
+          data: weekDate,
+          boundaryGap: false,
+          axisTick: {
+            show: false
+          }
+        },
+        grid: {
+          left: 10,
+          right: 10,
+          bottom: 20,
+          top: 100,
+          containLabel: true
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross'
+          },
+          padding: [5, 10]
+        },
+        yAxis: {
+          axisTick: {
+            show: false
+          }
+        },
+        legend: {
+          data: ['会员增长', '订单增长']
+        },
+        series: [{
+          name: '会员增长', itemStyle: {
+            normal: {
+              color: '#FF005A',
+              lineStyle: {
+                color: '#FF005A',
+                width: 2
+              }
+            }
+          },
+          smooth: true,
+          type: 'line',
+          data: expectedData,
+          animationDuration: 2800,
+          animationEasing: 'cubicInOut'
+        },
+        {
+          name: '订单增长',
+          smooth: true,
+          type: 'line',
+          itemStyle: {
+            normal: {
+              color: '#3888fa',
+              lineStyle: {
+                color: '#3888fa',
+                width: 2
+              },
+              areaStyle: {
+                color: '#f3f8ff'
+              }
+            }
+          },
+          data: actualData,
+          animationDuration: 2800,
+          animationEasing: 'quadraticOut'
+        }]
+      })
+    },
+    initChart() {
+      this.chart = echarts.init(this.$el, 'macarons')
+      this.setOptions(this.chartData)
+    }
   }
 }
 </script>

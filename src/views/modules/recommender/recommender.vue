@@ -1,8 +1,15 @@
 <template>
   <div class="membershipManagerment">
     <el-row :gutter="24">
-       <el-col :span="24">
-          <el-input v-model="listQuery.searchParam" style="width:180px;" placeholder="请输入用户名搜索"></el-input> <el-button type="success" @click="searchGetMenberData" icon="el-icon-search">用户搜索</el-button>
+       <el-col :span="18">
+          <el-input v-model="listQuery.searchParam" style="width:180px;" placeholder="请输入用户名搜索"></el-input>
+           <el-button type="success" @click="searchGetMenberData" icon="el-icon-search">用户搜索</el-button>
+           <el-button type="success" @click="UpLv" icon="el-icon-search">批量升级</el-button>
+           <el-button type="success" @click="UpDown" icon="el-icon-search">批量降级</el-button>
+       </el-col>
+       <el-col :span="6">
+          <el-input   type="number"   v-model="listQuery.recommendedNumParam" style="width:180px;" placeholder="请输入推荐人数"></el-input>
+          <el-button type="success" @click="searchGetMenberData" icon="el-icon-search">推荐人数搜索</el-button>
        </el-col>
        <el-col :span="24"  v-loading="loading"  element-loading-text="正在查询中。。。" >
          <el-table ref="multipleTable" :data="DistributorList" tooltip-effect="dark" style="width: 100%" @selection-change="handleSelectionChange">
@@ -24,7 +31,6 @@
         <pagination v-show="total>0" :total="total" :page.sync="listQuery.page" :limit.sync="listQuery.limit" @pagination="GetDistributorList" />
        </el-col>
     </el-row>
-
   </div>
 </template>
 
@@ -86,14 +92,43 @@ import Pagination from '@/components/Pagination'
         });
       },
 
+      //批量升级
+      UpLv(){
+        let that = this;
+        let arr = [];
+        this.multipleSelection.map(M => {
+          arr.push(M.distributorId);
+        })
+        API.UpLvDistributor({ids:arr.join(',')}).then(res => {
+          console.log("提升成功")
+        }).catch(err => {
+            this.$message.error('提升失败');          
+        })
+      },
+
+      //批量降级
+      UpDown(){
+        let that = this;
+        let arr = [];
+        this.multipleSelection.map(M => {
+          arr.push(M.distributorId);
+        })
+        API.DownLvDistributor({ids:arr.join(',')}).then(res => {
+          console.log("提升成功")
+        }).catch(err => {
+            this.$message.error('提升失败');          
+        })
+      },
+
       searchGetMenberData(){
         let that = this;
         that.GetDistributorList();
       },
 
       //多选
-      handleSelectionChange(){
+      handleSelectionChange(val){
         let that = this;
+        // console.log("查看一下选择")
         this.multipleSelection = val;
       },
      

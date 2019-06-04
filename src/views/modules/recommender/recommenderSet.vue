@@ -16,9 +16,9 @@
           </el-form-item>
         </el-form-item>
       </el-form-item>
-      <el-form-item label="积分抵扣" :label-width="formLabelWidth" prop="pointDeduction">
+      <!-- <el-form-item label="积分抵扣" :label-width="formLabelWidth" prop="pointDeduction">
         <el-input v-model="setForm.pointDeduction" auto-complete="off" placeholder="请输入积分抵扣"></el-input>
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item label="海报个性标签:" :label-width="formLabelWidth" prop="postTage">
         <el-input v-model="setForm.postTage" auto-complete="off" placeholder="请输入海报标签名称"></el-input>
       </el-form-item>
@@ -43,6 +43,12 @@
           <i v-else class="el-icon-plus avatar-uploader-icon"></i>
         </div>
       </el-form-item>
+      <el-form-item label="积分商城图片:" :label-width="formLabelWidth" prop="pointImage">
+        <div class="avatar-uploaders" @click="UpLoadShow(3,1)">
+          <img v-if="setForm.pointImage" :src="setForm.pointImage" class="avatar"  style="width:200px;height:200px;">
+          <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+        </div>
+      </el-form-item>
       <el-form-item label="订单过期时间:" :label-width="formLabelWidth" prop="expireTime">
         <el-input v-model="setForm.expireTime" auto-complete="off" placeholder="请输入订单过期时间" style="width:220px">
           <template slot="append">天</template>
@@ -50,7 +56,7 @@
       </el-form-item>
     <el-button type="primary" @click="onSubmit">保存</el-button>
   </el-form>
-<uploadImg :proportion="proportion"  ref='UploadImg' @GetDataImg='GetDataImg'></uploadImg>
+  <uploadImg :proportion="proportion"  ref='UploadImg' @GetDataImg='GetDataImg'></uploadImg>
 </div> 
 </template>
 
@@ -134,7 +140,12 @@ export default {
 
       GetDataImg(ImgUrl){
         let that=this
-        that.setForm.distributorPoster=ImgUrl
+        if(this.ImgType == 2){
+           that.setForm.distributorPoster=ImgUrl
+        }else if(this.ImgType == 3){
+            that.setForm.pointImage=ImgUrl         
+        }
+
       }, 
 
     //子组件裁剪方法成功执行后与父组件通信

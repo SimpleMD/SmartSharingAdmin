@@ -314,9 +314,7 @@ export default {
         //地址选择
         addressSelect(){
             //触发地图组件
-            console.log("触发时传的参数",this.EdiData.address)
-            this.$refs.map.DiaLogShow(true,this.EdiData.address)
-            
+            this.$refs.map.DiaLogShow(true,this.EdiData.address);
         },
 
         //选择父级

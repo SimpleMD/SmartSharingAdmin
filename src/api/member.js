@@ -135,5 +135,36 @@ export default {
    // 删除会员银行卡信息
    removeBankCard:params=>{
     return API.DELETE('/member/withdrawInfo/remove',params)
+   },
+
+   // 会员绑定标签
+   UserBangLabel:params=>{
+    return API.POST('/member/member/tag',params)
+   },
+   
+   //获取指定用户的标签
+   GetMenberLabel:params=>{
+    return API.GET('/member/member/tags',params)
+   },
+
+   //删除指定用户的标签member/member/tag
+   DELETEMenberLabel:params=>{
+    return API.DELETE('/member/member/tag',params)
+   },
+
+   //推荐师批量升级
+   UpLvDistributor:params => {
+     return API.PUT('/member/distributor/lvs/up',params)
+   },
+
+   //批量降级
+   DownLvDistributor:params => {
+    return API.PUT('/member/distributor/lvs/down',params)
+   },
+ 
+   //设置上级member/member/up_dis 
+   UpUserLvDis:params => {
+     return API.PUT('/member/member/up_dis',params)
    }
+   
 }
